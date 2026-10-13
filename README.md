@@ -10,7 +10,7 @@
   <em>Built from AST and imports — not LLM sketches.</em>
 </p>
 
-> This repository is a [fork of RepoPilot](https://github.com/rupak1005/repopilot-app). The original project provides the core architecture and features. This fork adds the RepoGuide AI branding, Gemma 4 provider integration, and project/presentation documentation. The showcase screenshots and original hosted URLs belong to the upstream project; this fork has not been deployed to those URLs.
+
 
 <p align="center">
   <a href="#unique-selling-points">USPs</a> ·
