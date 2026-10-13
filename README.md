@@ -123,7 +123,6 @@ Languages with first-class AST edges today: **TypeScript, JavaScript, Python, Go
 | Agents | Model Context Protocol (MCP) |
 | Deploy | Vercel (web) · Railway/Render (API) · Neon · Upstash |
 
-Marketing site lives separately: [repopilot-pi.vercel.app](https://repopilot-pi.vercel.app/).
 
 ---
 
@@ -227,10 +226,3 @@ In-app docs: `/docs` on the running app.
 - Ask / review are **advisory** — grounded when context exists, not a hard CI gate
 
 ---
-
-<p align="center">
-  <strong>Understand the system. Prove the answer. Ship with context.</strong><br/>
-  <a href="https://repopilot.software">repopilot.software</a>
-  ·
-  <a href="https://github.com/rupak1005/repopilot-app">GitHub</a>
-</p>
