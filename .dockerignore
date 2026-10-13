@@ -1,0 +1,13 @@
+.git
+.tmp
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/.env
+**/.env.local
+**/.env.*.local
+coverage
+playwright-report
+test-results
+*.log

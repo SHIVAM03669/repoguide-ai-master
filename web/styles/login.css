@@ -1,0 +1,116 @@
+/* Login — neo-brutalist hero panel (Layer A) */
+
+.login-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+}
+
+.login-page__main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  overflow: visible;
+}
+
+.login-shell {
+  max-width: 440px;
+}
+
+.login-card {
+  position: relative;
+  z-index: 1;
+  background: var(--color-surface-muted);
+  border: var(--border-heavy);
+  border-radius: var(--radius-xl);
+  padding: var(--space-10) var(--space-8) var(--space-8);
+  text-align: center;
+  box-shadow: var(--shadow-hard-lg);
+}
+
+.login-eyebrow {
+  display: inline-block;
+  margin-bottom: var(--space-5);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: var(--border-medium);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.login-mark {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  border: var(--border-heavy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  box-shadow: var(--shadow-hard-sm);
+}
+
+.login-card h1 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-h1);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-text);
+}
+
+.login-card > p {
+  margin: 0 0 var(--space-6);
+  font-size: var(--text-body);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.login-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.login-footer {
+  margin-top: var(--space-6);
+  font-size: var(--text-ui);
+}
+
+.login-footer a {
+  color: var(--color-link);
+  font-weight: 600;
+  transition: color var(--duration-normal) var(--ease-out-expo);
+}
+
+.login-footer a:hover {
+  color: var(--color-link-hover);
+}
+
+.login-page .error-banner {
+  margin-bottom: var(--space-5);
+  text-align: left;
+  font-size: var(--text-ui);
+  background: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface));
+  border: var(--border-medium);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-hard-sm);
+}
+
+@media (max-width: 640px) {
+  .login-card {
+    padding: var(--space-8) var(--space-5) var(--space-6);
+  }
+}

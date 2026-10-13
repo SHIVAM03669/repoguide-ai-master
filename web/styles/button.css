@@ -1,0 +1,176 @@
+/* Neo-brutalist Button — inspired by neo-brutalism-ui-library
+   Flat at rest → hard offset shadow on hover → darker fill on active. */
+
+.ui-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: var(--border-medium);
+  border-color: var(--color-border);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: none;
+  transition:
+    background var(--duration-normal) var(--ease-out-expo),
+    color var(--duration-normal) var(--ease-out-expo),
+    box-shadow var(--duration-normal) var(--ease-out-expo),
+    border-color var(--duration-normal) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.ui-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.ui-button:hover:not(:disabled) {
+  box-shadow: var(--shadow-hard-sm);
+  transform: translateY(-1px);
+}
+
+.ui-button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: none;
+}
+
+.ui-button--sm {
+  min-height: 40px;
+  padding: 8px var(--space-4);
+  font-size: var(--text-caption);
+  border-radius: var(--radius-sm);
+}
+
+.ui-button--sm:hover:not(:disabled) {
+  box-shadow: 2px 2px 0 var(--shadow-color);
+}
+
+.ui-button--md {
+  min-height: 48px;
+  padding: 10px var(--space-5);
+  font-size: var(--text-ui);
+  border-radius: var(--radius-md);
+}
+
+.ui-button--lg {
+  min-height: 56px;
+  padding: 12px var(--space-5);
+  font-size: var(--text-body);
+  border-radius: var(--radius-md);
+}
+
+.ui-button--lg:hover:not(:disabled) {
+  box-shadow: var(--shadow-hard-md);
+}
+
+.ui-button--full {
+  width: 100%;
+}
+
+.ui-button--primary {
+  background: var(--color-primary-strong);
+  color: var(--color-on-primary);
+}
+
+.ui-button--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.ui-button--primary:active:not(:disabled) {
+  background: color-mix(in srgb, var(--color-primary) 78%, var(--color-border-strong));
+}
+
+.ui-button--secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.ui-button--secondary:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+
+.ui-button--secondary:active:not(:disabled) {
+  background: var(--color-surface-accent);
+}
+
+.ui-button--ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+  box-shadow: none;
+}
+
+.ui-button--ghost:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-hard-sm);
+}
+
+.ui-button--danger {
+  background: var(--color-danger);
+  color: var(--color-on-danger);
+  border-color: var(--color-border-strong);
+}
+
+.ui-button--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger) 88%, black);
+}
+
+.ui-button--danger:active:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger) 72%, black);
+}
+
+.ui-button:disabled {
+  border-color: color-mix(in srgb, var(--color-border) 70%, var(--color-text-subtle));
+  background: var(--color-surface-muted);
+  color: var(--color-text-subtle);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 1;
+}
+
+.ui-button:disabled:hover {
+  box-shadow: none;
+  background: var(--color-surface-muted);
+}
+
+.ui-button--loading {
+  cursor: progress;
+  pointer-events: none;
+}
+
+.ui-button--loading .ui-button__label {
+  opacity: 0.72;
+}
+
+.ui-button__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.ui-button__label {
+  line-height: 1.2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-button {
+    transition:
+      background var(--duration-fast) ease,
+      color var(--duration-fast) ease,
+      box-shadow var(--duration-fast) ease;
+  }
+
+  .ui-button:active:not(:disabled) {
+    transform: none;
+  }
+
+  .ui-button:hover:not(:disabled) {
+    transform: none;
+  }
+}

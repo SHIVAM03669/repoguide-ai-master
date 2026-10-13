@@ -1,0 +1,39 @@
+{
+  "name": "@repopilot/api",
+  "private": true,
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "start": "node dist/server.js",
+    "worker": "node dist/worker.js",
+    "dev:worker": "ts-node-dev --respawn --transpile-only src/worker.ts",
+    "build": "prisma generate && tsc -p tsconfig.json",
+    "mcp": "node dist/mcp/server.js",
+    "mcp:dev": "ts-node-dev --transpile-only src/mcp/server.ts",
+    "lint": "eslint src --ext .ts",
+    "type-check": "prisma generate && tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --config ../vitest.config.ts --project api --passWithNoTests"
+  },
+  "dependencies": {
+    "@fastify/cors": "*",
+    "@fastify/env": "*",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@prisma/adapter-pg": "*",
+    "@prisma/client": "*",
+    "@repopilot/common": "0.0.0",
+    "fast-glob": "*",
+    "fastify": "*",
+    "ioredis": "*",
+    "pg": "*",
+    "prisma": "*",
+    "tree-sitter": "*",
+    "tree-sitter-go": "^0.25.0",
+    "tree-sitter-javascript": "*",
+    "tree-sitter-python": "^0.25.0",
+    "tree-sitter-typescript": "*",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {}
+}

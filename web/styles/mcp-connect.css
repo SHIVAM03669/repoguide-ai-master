@@ -1,0 +1,296 @@
+/* MCP connect guide */
+
+.mcp-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+}
+
+.mcp-page__main {
+  flex: 1;
+  padding: var(--space-10) var(--space-6) var(--space-12);
+  overflow-x: hidden;
+}
+
+.mcp-page__shell {
+  position: relative;
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+  min-width: 0;
+}
+
+.mcp-page__notice {
+  margin: 0 0 var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-medium);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  font-size: var(--text-ui);
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.mcp-page__notice a {
+  color: var(--color-link);
+  font-weight: 700;
+}
+
+.canvas-inner--mcp {
+  max-width: 760px;
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+  padding-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-6);
+}
+
+.canvas-inner--mcp .page-title-block {
+  margin-bottom: 0;
+  text-align: left;
+}
+
+.mcp-connect {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-8);
+  width: 100%;
+  min-width: 0;
+}
+
+.mcp-connect__config,
+.mcp-connect__setup,
+.mcp-connect__tools {
+  width: 100%;
+  min-width: 0;
+}
+
+.mcp-connect__section-title {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-body);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.mcp-connect__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 720px) {
+  .mcp-connect__steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.mcp-connect__step {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--border-medium);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-hard-sm);
+  min-width: 0;
+}
+
+.mcp-connect__step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: var(--border-medium);
+  background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+  font-weight: 800;
+  font-size: var(--text-ui);
+}
+
+.mcp-connect__step h3 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-ui);
+  font-weight: 800;
+}
+
+.mcp-connect__step p {
+  margin: 0;
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.mcp-connect__ids {
+  margin: var(--space-4) 0 0;
+  display: grid;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: var(--border-soft-width);
+  min-width: 0;
+}
+
+.mcp-connect__ids dt {
+  font-size: var(--text-micro);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.mcp-connect__ids dd {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-ui);
+  min-width: 0;
+}
+
+.mcp-connect__id-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.mcp-connect__id-row .mono {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.mcp-connect__copy--inline {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-micro);
+  box-shadow: none;
+}
+
+.mcp-connect__config {
+  padding: var(--space-5);
+  border: var(--border-heavy);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-hard-sm);
+}
+
+.mcp-connect__config-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.mcp-connect__config-head h2 {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.mcp-connect__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-medium);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  font-size: var(--text-ui);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-hard-sm);
+}
+
+.mcp-connect__pre {
+  margin: 0;
+  padding: var(--space-4);
+  max-width: 100%;
+  overflow-x: auto;
+  border: var(--border-medium);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.mcp-connect__hint {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.mcp-connect__tool-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
+}
+
+.mcp-connect__tool {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: var(--border-medium);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--text-ui);
+  box-shadow: var(--shadow-hard-sm);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.mcp-connect__tool-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.mcp-connect__tool-link {
+  font-size: var(--text-micro);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: var(--color-link);
+}
+
+.mcp-connect__tool-desc {
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.mcp-connect__tool-example {
+  margin: 0;
+  padding: var(--space-3);
+  max-width: 100%;
+  overflow-x: auto;
+  border: var(--border-soft-width);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  font-size: var(--text-micro);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,25 @@
+node_modules
+.tmp
+
+# secrets — never commit
+.env
+.env.local
+.env.*.local
+api/.env
+web/.env.local
+.cursor/mcp.json
+
+# build / cache
+dist/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# tooling / OS
+.DS_Store
+*.log
+coverage/
+playwright-report/
+test-results/
+.vercel

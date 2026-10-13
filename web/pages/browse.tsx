@@ -1,0 +1,288 @@
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowSquareOut, Graph, MagnifyingGlass } from '@phosphor-icons/react';
+import { Button } from '../components/ui/Button';
+import { DifferentiatorsStrip } from '../components/ui/DifferentiatorsStrip';
+import { EmptyState } from '../components/ui/EmptyState';
+import { ErrorBanner } from '../components/ui/ErrorBanner';
+import { PublicPageLayout } from '../components/ui/PublicPageLayout';
+import { Skeleton } from '../components/ui/Skeleton';
+import { githubUrl } from '../lib/exampleRepos';
+import { isDemoMode } from '../lib/demoMode';
+import { useIndexProgressUi } from '../lib/indexProgressUi';
+import { apiUnreachableMessage, parseJsonResponse } from '../lib/parseJsonResponse';
+import { Pagination } from '../components/ui/Pagination';
+import { browseResultRange, browseTotalPages } from '../lib/browsePagination';
+
+type BrowseItem = {
+  fullName: string;
+  description: string | null;
+  stars: number;
+  updatedAt: string;
+};
+
+type BrowseSort = 'stars' | 'updated';
+
+function formatStars(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
+  return String(n);
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+}
+
+export default function BrowsePage() {
+  const router = useRouter();
+  const { startIndexProgress } = useIndexProgressUi();
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<BrowseSort>('stars');
+  const [minStars, setMinStars] = useState('');
+  const [items, setItems] = useState<BrowseItem[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [opening, setOpening] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const requestId = useRef(0);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, sort, minStars]);
+
+  const load = useCallback(async () => {
+    const currentRequest = ++requestId.current;
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ sort, page: String(page) });
+      if (query.trim()) params.set('q', query.trim());
+      if (minStars) params.set('minStars', minStars);
+      const response = await fetch(`/api/public/browse?${params}`);
+      if (!response.ok) throw new Error('Could not load repositories');
+      const data = (await response.json()) as { totalCount?: number; items?: BrowseItem[] };
+      if (currentRequest !== requestId.current) return;
+      setItems(data.items ?? []);
+      setTotalCount(data.totalCount ?? 0);
+    } catch (err) {
+      if (currentRequest !== requestId.current) return;
+      setError(err instanceof Error ? err.message : 'Failed to load browse index');
+      setItems([]);
+      setTotalCount(0);
+    } finally {
+      if (currentRequest === requestId.current) setLoading(false);
+    }
+  }, [query, sort, minStars, page]);
+
+  const totalPages = browseTotalPages(totalCount);
+  const hasFilters = Boolean(query.trim() || minStars || sort !== 'stars');
+
+  function clearFilters() {
+    setQuery('');
+    setSort('stars');
+    setMinStars('');
+    setPage(1);
+  }
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => void load(), 300);
+    return () => window.clearTimeout(timer);
+  }, [load]);
+
+  async function openRepo(fullName: string) {
+    setOpening(fullName);
+    setError(null);
+    try {
+      const response = await fetch('/api/public/open', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: githubUrl(fullName) })
+      });
+      const data = await parseJsonResponse<{ repositoryId?: string; fullName?: string; indexing?: boolean; error?: string }>(response);
+      if (!data) {
+        throw new Error(apiUnreachableMessage());
+      }
+      if (!response.ok || !data.repositoryId) {
+        throw new Error(data.error ?? 'Could not open repository');
+      }
+      if (data.indexing && !isDemoMode()) {
+        startIndexProgress({
+          repoId: data.repositoryId,
+          fullName: data.fullName ?? fullName,
+          onReady: () => void router.push(`/dashboard/${data.repositoryId}`)
+        });
+      }
+      void router.push(`/dashboard/${data.repositoryId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not open repository');
+      setOpening(null);
+    }
+  }
+
+  return (
+    <PublicPageLayout
+      active="browse"
+      pageClassName="browse-page"
+      mainClassName="browse-main"
+      decorVariant="top"
+      seo={{
+        title: 'Browse public repositories',
+        description:
+          'Search public GitHub repositories and open one in RepoGuide AI to index graphs, hotspots, Ask, and PR review.',
+        path: '/browse'
+      }}
+    >
+        <header className="browse-hero">
+          <h1>Browse public repositories</h1>
+          <p>
+            Search GitHub by name, filter by stars, and open a repo to index it — then explore
+            impact, hotspots, Ask, and PR review in the dashboard.
+          </p>
+        </header>
+
+        <DifferentiatorsStrip title="Why RepoGuide AI" showTagline />
+
+        <div className="browse-filters">
+          <label>
+            Search repositories
+            <input
+              className="ui-input"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="owner/repo or keyword"
+              aria-label="Search repositories by owner, name, or keyword"
+              spellCheck={false}
+            />
+          </label>
+          <label>
+            Sort
+            <select value={sort} onChange={(event) => setSort(event.target.value as BrowseSort)}>
+              <option value="stars">Most stars</option>
+              <option value="updated">Most recent</option>
+            </select>
+          </label>
+          <label>
+            Minimum stars
+            <select value={minStars} onChange={(event) => setMinStars(event.target.value)}>
+              <option value="">Any</option>
+              <option value="10">10+</option>
+              <option value="100">100+</option>
+              <option value="1000">1,000+</option>
+            </select>
+          </label>
+        </div>
+
+        {error ? <ErrorBanner onRetry={() => void load()}>{error}</ErrorBanner> : null}
+
+        <p className="browse-meta" aria-live="polite">
+          {loading
+            ? 'Finding public repositories…'
+            : `Showing ${browseResultRange(page, totalCount, items.length)} public repositories`}
+        </p>
+
+        <div className="browse-table-wrap">
+          {loading ? (
+            <div className="browse-skeleton" role="status" aria-label="Loading repositories">
+              <span className="sr-only">Loading repositories…</span>
+              {Array.from({ length: 5 }, (_, index) => (
+                <div className="browse-skeleton__row" key={index} aria-hidden>
+                  <div className="browse-skeleton__repo">
+                    <Skeleton width={index % 2 === 0 ? '48%' : '38%'} height={18} radius="sm" />
+                    <Skeleton width={index % 3 === 0 ? '74%' : '62%'} height={13} radius="sm" />
+                  </div>
+                  <Skeleton width={42} height={16} radius="sm" />
+                  <Skeleton width={96} height={16} radius="sm" />
+                  <Skeleton width={154} height={40} radius="sm" />
+                </div>
+              ))}
+            </div>
+          ) : items.length === 0 ? (
+            <EmptyState
+              className="browse-empty-state"
+              icon={MagnifyingGlass}
+              title={hasFilters ? 'No repositories match those filters' : 'No public repositories yet'}
+              description={
+                hasFilters
+                  ? 'Try a broader search, lower the minimum stars, or reset the filters.'
+                  : 'Public repositories will appear here when the browse index is available.'
+              }
+              action={
+                hasFilters ? (
+                  <Button type="button" variant="secondary" size="sm" onClick={clearFilters}>
+                    Clear filters
+                  </Button>
+                ) : null
+              }
+            />
+          ) : (
+            <table className="browse-table">
+              <thead>
+                <tr>
+                  <th scope="col">Repository</th>
+                  <th scope="col">Stars</th>
+                  <th scope="col">Updated</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((repo) => (
+                  <tr key={repo.fullName}>
+                    <td>
+                      <div className="browse-repo-name">{repo.fullName}</div>
+                      {repo.description ? (
+                        <p className="browse-repo-desc">{repo.description}</p>
+                      ) : null}
+                    </td>
+                    <td className="browse-stars">{formatStars(repo.stars)}</td>
+                    <td>{formatDate(repo.updatedAt)}</td>
+                    <td>
+                      <div className="browse-actions">
+                        <Button
+                          variant="primary"
+                          size="md"
+                          disabled={opening === repo.fullName}
+                          loading={opening === repo.fullName}
+                          icon={<Graph size={16} weight="bold" />}
+                          onClick={() => void openRepo(repo.fullName)}
+                        >
+                          {opening === repo.fullName ? 'Opening…' : 'Open repo'}
+                        </Button>
+                        <Button
+                          href={githubUrl(repo.fullName)}
+                          variant="secondary"
+                          size="md"
+                          icon={<ArrowSquareOut size={16} weight="bold" />}
+                        >
+                          GitHub
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {totalPages > 1 && !loading ? (
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            label="Browse pages"
+          />
+        ) : null}
+
+        <p className="browse-meta">
+          <Link href="/">← Back to home</Link>
+        </p>
+    </PublicPageLayout>
+  );
+}

@@ -1,0 +1,141 @@
+import type { RevisionRow } from './history';
+
+/** Query key for revision-scoped dashboard views (`?rev=`). */
+export const REVISION_QUERY_KEY = 'rev';
+
+export function parseRevisionQuery(value: string | string[] | undefined): string | null {
+  if (typeof value !== 'string') return null;
+  const sha = value.trim();
+  return sha.length >= 7 ? sha : null;
+}
+
+/** Append `revisionSha` to a BFF subpath that may already include query params. */
+export function withRevisionSha(subpath: string, revisionSha: string | null | undefined): string {
+  if (!revisionSha) return subpath;
+  const join = subpath.includes('?') ? '&' : '?';
+  return `${subpath}${join}revisionSha=${encodeURIComponent(revisionSha)}`;
+}
+
+export type ArchitectureHrefOpts = {
+  revisionSha?: string | null;
+  file?: string;
+  blast?: boolean;
+  /** Flow = dagre (default, omitted from URL); System = ELK. */
+  layout?: 'flow' | 'system' | null;
+};
+
+/** Query key for Architecture layout (`?layout=system`). */
+export const LAYOUT_QUERY_KEY = 'layout';
+
+export function parseArchitectureLayoutQuery(
+  value: string | string[] | undefined
+): 'flow' | 'system' {
+  const raw = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  if (raw === 'system' || raw === 'elk') return 'system';
+  return 'flow';
+}
+
+export function architectureHref(
+  repoId: string,
+  revisionShaOrOpts?: string | null | ArchitectureHrefOpts
+): string {
+  const opts: ArchitectureHrefOpts =
+    typeof revisionShaOrOpts === 'string' || revisionShaOrOpts == null
+      ? { revisionSha: revisionShaOrOpts }
+      : revisionShaOrOpts;
+  const params = new URLSearchParams();
+  if (opts.file) params.set('file', opts.file);
+  if (opts.blast) params.set('blast', '1');
+  if (opts.layout === 'system') params.set(LAYOUT_QUERY_KEY, 'system');
+  if (opts.revisionSha) params.set(REVISION_QUERY_KEY, opts.revisionSha);
+  const q = params.toString();
+  return q ? `/dashboard/${repoId}/architecture?${q}` : `/dashboard/${repoId}/architecture`;
+}
+
+/** Shallow-route query bag for Architecture, preserving shared deep-link keys. */
+export function architectureRouteQuery(opts: {
+  file?: string | null;
+  blast?: boolean;
+  layout?: 'flow' | 'system';
+  revisionSha?: string | null;
+}): Record<string, string> {
+  const query: Record<string, string> = {};
+  if (opts.file) query.file = opts.file;
+  if (opts.blast) query.blast = '1';
+  if (opts.layout === 'system') query[LAYOUT_QUERY_KEY] = 'system';
+  if (opts.revisionSha) query[REVISION_QUERY_KEY] = opts.revisionSha;
+  return query;
+}
+
+export type ImpactHrefOpts = {
+  file?: string;
+  pull?: string | number;
+  symbol?: string;
+  revisionSha?: string | null;
+};
+
+export function impactHref(repoId: string, opts: ImpactHrefOpts = {}): string {
+  const params = new URLSearchParams();
+  if (opts.file) params.set('file', opts.file);
+  if (opts.pull != null && String(opts.pull).trim()) params.set('pull', String(opts.pull));
+  if (opts.symbol) params.set('symbol', opts.symbol);
+  if (opts.revisionSha) params.set(REVISION_QUERY_KEY, opts.revisionSha);
+  const q = params.toString();
+  return q ? `/dashboard/${repoId}/impact?${q}` : `/dashboard/${repoId}/impact`;
+}
+
+export type Viz3dHrefOpts = {
+  file?: string;
+  revisionSha?: string | null;
+  layout?: 'flow' | 'system' | null;
+  blast?: boolean;
+  /** Opt-in topography terrain (hotspot heights). */
+  topo?: boolean;
+  windowDays?: number;
+};
+
+/** Opt-in Gate D 3D explore route — keeps 2D Architecture as the product default. */
+export function viz3dHref(repoId: string, opts: Viz3dHrefOpts = {}): string {
+  const params = new URLSearchParams();
+  if (opts.file) params.set('file', opts.file);
+  if (opts.blast) params.set('blast', '1');
+  if (opts.topo) params.set('topo', '1');
+  if (opts.windowDays && opts.windowDays !== 30) params.set('window', String(opts.windowDays));
+  if (opts.layout === 'system') params.set(LAYOUT_QUERY_KEY, 'system');
+  if (opts.revisionSha) params.set(REVISION_QUERY_KEY, opts.revisionSha);
+  const q = params.toString();
+  return q ? `/dashboard/${repoId}/viz-spike?${q}` : `/dashboard/${repoId}/viz-spike`;
+}
+
+/** Next.js shallow-route query bag for Impact, preserving `rev` when set. */
+export function impactRouteQuery(
+  mode: 'file' | 'pull' | 'symbol',
+  values: { file?: string; pull?: string; symbol?: string },
+  revisionSha?: string | null
+): Record<string, string> {
+  const query: Record<string, string> = {};
+  if (mode === 'file' && values.file) query.file = values.file;
+  if (mode === 'pull' && values.pull) query.pull = values.pull;
+  if (mode === 'symbol' && values.symbol) query.symbol = values.symbol;
+  if (revisionSha) query[REVISION_QUERY_KEY] = revisionSha;
+  return query;
+}
+
+export function revisionSelectLabel(row: RevisionRow, index: number): string {
+  const short = row.revisionSha.slice(0, 7);
+  return index === 0 ? `${short} · latest` : short;
+}
+
+export function matchRevisionValue(revisions: RevisionRow[], sha: string | null): string {
+  if (!sha) return '';
+  const hit = revisions.find(
+    (row) =>
+      row.revisionSha === sha || row.revisionSha.startsWith(sha) || sha.startsWith(row.revisionSha)
+  );
+  return hit?.revisionSha ?? '';
+}
+
+export function isKnownRevision(revisions: RevisionRow[], sha: string | null): boolean {
+  if (!sha) return true;
+  return Boolean(matchRevisionValue(revisions, sha));
+}

@@ -1,0 +1,378 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model ProductAnalyticsEvent {
+  id         String   @id @default(uuid())
+  name       String
+  path       String?
+  properties Json?
+  createdAt  DateTime @default(now())
+
+  @@index([name, createdAt])
+  @@index([createdAt])
+}
+
+// ---- Phase 2: Repository Analyzer (Repository -> Parsed files -> Symbols/Imports/Exports) ----
+
+model Repository {
+  id        String   @id @default(uuid())
+  name      String
+  owner     String
+  createdAt DateTime @default(now())
+
+  revisions          RepositoryRevision[]
+  files              File[]
+  codeChunks         CodeChunk[]
+  moduleDependencies ModuleDependency[]
+  pullRequests       PullRequest[]
+  webhookDeliveries  WebhookDelivery[]
+  queuedJobs         QueuedJob[]
+  historyIngestState HistoryIngestState?
+  commits            CommitRecord[]
+  coChangePairs      CoChangePair[]
+  moduleHotspots     ModuleHotspot[]
+}
+
+model RepositoryRevision {
+  id           String   @id @default(uuid())
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  revisionSha  String
+  indexedAt    DateTime @default(now())
+
+  files              File[]
+  codeChunks         CodeChunk[]
+  symbolDependencies SymbolDependency[]
+  moduleDependencies ModuleDependency[]
+
+  @@unique([repositoryId, revisionSha])
+  @@index([repositoryId])
+}
+
+model File {
+  id           String        @id @default(uuid())
+  repositoryId String
+  repository   Repository    @relation(fields: [repositoryId], references: [id])
+  revisionId   String
+  revision     RepositoryRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+
+  path       String
+  content    String
+  indexedAt  DateTime       @default(now())
+
+  symbols    Symbol[]
+  imports    FileImport[]
+  exports    FileExport[]
+  codeChunks CodeChunk[]
+
+  @@unique([revisionId, path])
+  @@index([repositoryId])
+  @@index([revisionId])
+}
+
+model Symbol {
+  id        String   @id @default(uuid())
+  fileId    String
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  name       String
+  type       String
+  startLine  Int
+  endLine    Int
+
+  outgoingDependencies SymbolDependency[] @relation("SymbolDependencyFrom")
+  incomingDependencies SymbolDependency[] @relation("SymbolDependencyTo")
+
+  @@index([fileId])
+  @@index([name])
+}
+
+model FileImport {
+  id         String   @id @default(uuid())
+  fileId     String
+  file       File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  module     String
+  specifiers String[]
+
+  @@index([fileId])
+  @@index([module])
+}
+
+model FileExport {
+  id      String @id @default(uuid())
+  fileId  String
+  file    File   @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  name String
+
+  @@index([fileId])
+  @@index([name])
+}
+
+model SymbolDependency {
+  id           String @id @default(uuid())
+  revisionId   String
+  fromSymbolId String
+  toSymbolId   String
+  /// Context Graph edge kind (calls, extends, …).
+  kind         String  @default("calls")
+  confidence   Float   @default(0.65)
+  sourceFile   String?
+  sourceLine   Int?
+  targetLine   Int?
+  detector     String  @default("heuristic")
+
+  revision   RepositoryRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  fromSymbol Symbol @relation("SymbolDependencyFrom", fields: [fromSymbolId], references: [id], onDelete: Cascade)
+  toSymbol   Symbol @relation("SymbolDependencyTo", fields: [toSymbolId], references: [id], onDelete: Cascade)
+
+  @@unique([revisionId, fromSymbolId, toSymbolId])
+  @@index([revisionId])
+  @@index([revisionId, fromSymbolId])
+  @@index([revisionId, toSymbolId])
+  @@index([revisionId, kind])
+}
+
+model ModuleDependency {
+  id           String @id @default(uuid())
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  revisionId   String
+  revision     RepositoryRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  fromModule   String
+  toModule     String
+  /// Context Graph edge kind (imports, depends_on, …).
+  kind         String  @default("imports")
+  confidence   Float   @default(1)
+  sourceFile   String?
+  sourceLine   Int?
+  targetLine   Int?
+  detector     String  @default("tree-sitter")
+
+  @@unique([revisionId, fromModule, toModule])
+  @@index([repositoryId])
+  @@index([revisionId])
+  @@index([toModule])
+  @@index([revisionId, kind])
+}
+
+model CodeChunk {
+  id           String @id @default(uuid())
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  revisionId   String
+  revision     RepositoryRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  fileId       String
+  file         File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  filePath     String
+  startLine    Int
+  endLine      Int
+  chunkType    String @default("lines")
+  text         String
+  embedding    Unsupported("vector(1536)")?
+  searchVector Unsupported("tsvector")?
+
+  @@unique([revisionId, filePath, startLine, endLine])
+  @@index([repositoryId])
+  @@index([revisionId])
+  @@index([fileId])
+}
+
+model WebhookDelivery {
+  id           String   @id @default(uuid())
+  deliveryId   String   @unique
+  event        String
+  action       String?
+  repositoryId String?
+  repository   Repository? @relation(fields: [repositoryId], references: [id], onDelete: SetNull)
+  payload      Json
+  receivedAt   DateTime @default(now())
+
+  @@index([repositoryId])
+}
+
+model PullRequest {
+  id           String   @id @default(uuid())
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  number       Int
+  title        String
+  body         String?
+  authorLogin  String?
+  baseBranch   String
+  headBranch   String
+  baseRevision String
+  headRevision String
+  status       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
+
+  revisions PullRequestRevision[]
+  reviews   PullRequestReview[]
+  queuedJobs QueuedJob[]
+
+  @@unique([repositoryId, number])
+  @@index([repositoryId])
+}
+
+model PullRequestReview {
+  id            String   @id @default(uuid())
+  pullRequestId String
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  headRevision  String
+  baseRevision  String
+  status        String
+  outcome       String?
+  checkRunId    String?
+  summary       Json?
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+
+  findings ReviewFinding[]
+
+  @@unique([pullRequestId, headRevision])
+  @@index([pullRequestId])
+}
+
+model ReviewFinding {
+  id              String @id @default(uuid())
+  reviewId        String
+  review          PullRequestReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  title           String
+  severity        String
+  category        String
+  confidence      String
+  description     String
+  suggestedAction String?
+  fingerprint     String?
+
+  evidence ReviewEvidence[]
+
+  @@index([reviewId])
+  @@index([fingerprint])
+}
+
+model ReviewEvidence {
+  id         String @id @default(uuid())
+  findingId  String
+  finding    ReviewFinding @relation(fields: [findingId], references: [id], onDelete: Cascade)
+  type       String
+  filePath   String
+  startLine  Int
+  endLine    Int
+  revisionId String?
+
+  @@index([findingId])
+}
+
+model PullRequestRevision {
+  id            String @id @default(uuid())
+  pullRequestId String
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  deliveryId    String
+  action        String
+  baseRevision  String
+  headRevision  String
+  status        String
+  createdAt     DateTime @default(now())
+
+  @@unique([pullRequestId, headRevision])
+  @@index([pullRequestId])
+}
+
+model QueuedJob {
+  id            String @id @default(uuid())
+  type          String
+  repositoryId  String
+  repository    Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  pullRequestId String?
+  pullRequest   PullRequest? @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  deliveryId    String
+  dedupeKey     String @unique
+  payload       Json
+  status        String @default("QUEUED")
+  attempts      Int    @default(0)
+  lastError     String?
+  bullJobId     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  @@index([repositoryId])
+  @@index([pullRequestId])
+}
+
+model HistoryIngestState {
+  repositoryId     String   @id
+  repository       Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  lastProcessedSha String?
+  updatedAt        DateTime @default(now())
+}
+
+model CommitRecord {
+  id           String   @id @default(uuid())
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  sha          String
+  authorName   String?
+  authorEmail  String?
+  authoredAt   DateTime
+  message      String
+  searchVector Unsupported("tsvector")?
+
+  fileChanges CommitFileChange[]
+
+  @@unique([repositoryId, sha])
+  @@index([repositoryId, authoredAt])
+}
+
+model CommitFileChange {
+  id         String @id @default(uuid())
+  commitId   String
+  commit     CommitRecord @relation(fields: [commitId], references: [id], onDelete: Cascade)
+  filePath   String
+  changeType String
+  additions  Int    @default(0)
+  deletions  Int    @default(0)
+
+  @@index([commitId])
+  @@index([filePath])
+}
+
+model CoChangePair {
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  fileA        String
+  fileB        String
+  count        Int @default(0)
+
+  @@id([repositoryId, fileA, fileB])
+  @@index([repositoryId, fileA])
+}
+
+model ModuleHotspot {
+  repositoryId   String
+  repository     Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  filePath       String
+  score          Float
+  changeCount    Int @default(0)
+  dependentCount Int @default(0)
+  coChangeCount  Int @default(0)
+  findingsCount  Int @default(0)
+  reasons        Json
+  updatedAt      DateTime @default(now())
+
+  @@id([repositoryId, filePath])
+  @@index([repositoryId])
+}

@@ -1,0 +1,128 @@
+.ui-bento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 1024px) {
+  .ui-bento-grid {
+    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+    align-items: start;
+  }
+}
+
+.ui-bento-panel {
+  background: var(--color-surface);
+  border: var(--border-medium);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: none;
+}
+
+.ui-bento-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-soft-width);
+  background: var(--color-surface-muted);
+}
+
+.ui-bento-panel__title {
+  margin: 0;
+  font-size: var(--text-ui);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.ui-bento-panel__action a {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.ui-bento-panel__action a:hover {
+  color: var(--color-link-hover);
+}
+
+.ui-bento-panel__body {
+  min-width: 0;
+}
+
+.ui-settings-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ui-settings-stack .settings-dl,
+.ui-settings-stack .settings-links {
+  padding: var(--space-4);
+}
+
+.ui-settings-stack .ui-empty-state,
+.ui-bento-panel__body > .ui-empty-state {
+  margin: var(--space-4);
+}
+
+.ui-settings-index {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.ui-settings-index__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.ui-settings-index__detail {
+  color: var(--color-text-muted);
+  font-size: var(--text-ui);
+}
+
+.ui-settings-index__error {
+  color: var(--color-danger, var(--status-danger));
+  font-size: var(--text-ui);
+  line-height: 1.45;
+}
+
+.ui-settings-index__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.ui-settings-index__link {
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--color-link);
+}
+
+.ui-settings-id-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ui-settings-copy {
+  border: var(--border-medium);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-micro);
+  font-weight: 700;
+  cursor: pointer;
+}
